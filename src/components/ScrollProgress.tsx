@@ -1,3 +1,4 @@
+// src/components/ScrollProgress.tsx
 import { useEffect, useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -8,7 +9,8 @@ const sections = [
   { id: "hero", label: "Home" },
   { id: "about", label: "About" },
   { id: "skills", label: "Skills" },
-  { id: "achievements", label: "Milestones" },
+  { id: "milestones", label: "Milestones" },
+  { id: "achievements", label: "Achievements" },
   { id: "projects", label: "Projects" },
   { id: "contact", label: "Contact" },
 ];

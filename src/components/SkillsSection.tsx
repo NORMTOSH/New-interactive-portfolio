@@ -68,7 +68,7 @@ const SkillsSection = () => {
       <div className="max-w-6xl mx-auto relative z-10">
         <div ref={headingRef} className="mb-16">
           <p className="font-mono text-sm tracking-[0.3em] uppercase text-primary mb-3">
-            Expertise
+            Skill stack
           </p>
           <TextReveal className="text-4xl md:text-6xl font-bold tracking-tight">
             <TextReveal.Line>Core <span className="text-gradient-accent">Skills</span></TextReveal.Line>
@@ -78,6 +78,15 @@ const SkillsSection = () => {
         {/* Interactive 3D Tech Cubes */}
         <div className="w-full h-[400px] md:h-[500px] mb-12 rounded-2xl overflow-hidden border border-border/20 bg-card/10 backdrop-blur-sm">
           <TechCubes />
+        </div>
+
+        <div ref={headingRef} className="mb-16">
+          <p className="font-mono text-sm tracking-[0.3em] uppercase text-primary mb-3">
+            Expertise
+          </p>
+          <TextReveal className="text-4xl md:text-6xl font-bold tracking-tight">
+            <TextReveal.Line>Core <span className="text-gradient-accent">Skills</span></TextReveal.Line>
+          </TextReveal>
         </div>
 
         <div ref={cardsRef} className="grid md:grid-cols-2 gap-6">
