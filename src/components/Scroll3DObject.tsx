@@ -28,6 +28,11 @@ type ProgressState = {
   contact: number;
 };
 
+type Viewport = {
+  width: number;
+  height: number;
+};
+
 const SOLID_COLOR = "#f7ffff";
 const WIRE_COLOR = "#ffffff";
 const OUTLINE_COLOR = "#b8ffff";
@@ -269,6 +274,31 @@ function useReducedMotion() {
   return reduced;
 }
 
+function useViewport() {
+  const [viewport, setViewport] = useState<Viewport>({
+    width: typeof window !== "undefined" ? window.innerWidth : 0,
+    height: typeof window !== "undefined" ? window.innerHeight : 0,
+  });
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const update = () => {
+      setViewport({
+        width: window.innerWidth,
+        height: window.innerHeight,
+      });
+    };
+
+    update();
+    window.addEventListener("resize", update, { passive: true });
+
+    return () => window.removeEventListener("resize", update);
+  }, []);
+
+  return viewport;
+}
+
 function useScrollProgress() {
   const progressRef = useRef<ProgressState>({
     scroll: 0,
@@ -344,9 +374,16 @@ function useScrollProgress() {
   return progressRef;
 }
 
-function DeconstructingObject() {
-  const reducedMotion = useReducedMotion();
-  const shardCount = reducedMotion ? 96 : 144;
+type DeconstructingObjectProps = {
+  viewport: Viewport;
+  reducedMotion: boolean;
+};
+
+function DeconstructingObject({ viewport, reducedMotion }: DeconstructingObjectProps) {
+  const isMobile = viewport.width < 640;
+  const isTablet = viewport.width >= 640 && viewport.width < 1024;
+
+  const shardCount = reducedMotion ? (isMobile ? 64 : 96) : isMobile ? 88 : isTablet ? 120 : 144;
 
   const groupRef = useRef<THREE.Group>(null);
   const solidMeshRef = useRef<THREE.InstancedMesh>(null);
@@ -357,6 +394,30 @@ function DeconstructingObject() {
   const pulseRef = useRef(0);
   const transitionPulseRef = useRef(0);
   const progressRef = useScrollProgress();
+
+  const layout = useMemo(() => {
+    return {
+      cameraStartZ: isMobile ? 8.8 : isTablet ? 7.8 : 7.2,
+      cameraEndZ: isMobile ? 5.7 : isTablet ? 4.9 : 4.25,
+      fovStart: isMobile ? 58 : isTablet ? 52 : 48,
+      fovEnd: isMobile ? 48 : isTablet ? 44 : 40,
+
+      groupXStart: isMobile ? 0.08 : isTablet ? 1.15 : 2.35,
+      groupYStart: isMobile ? 0.95 : isTablet ? 0.82 : 0.7,
+      groupYEnd: isMobile ? 0.06 : isTablet ? 0.12 : 0.14,
+      groupZStart: isMobile ? -0.05 : isTablet ? -0.15 : -0.25,
+      groupZEnd: isMobile ? 0.2 : isTablet ? 0.34 : 0.42,
+
+      groupScaleBase: isMobile ? 0.8 : isTablet ? 0.95 : 1.06,
+      groupScalePeak: isMobile ? 1.18 : isTablet ? 1.42 : 1.72,
+
+      introWobble: isMobile ? 0.06 : isTablet ? 0.1 : 0.14,
+      bracketPullScale: isMobile ? 0.26 : isTablet ? 0.36 : 0.45,
+
+      cameraXWobble: isMobile ? 0.03 : 0.06,
+      cameraYBase: isMobile ? 0.035 : 0.02,
+    };
+  }, [isMobile, isTablet]);
 
   const textTargets = useMemo(() => buildTextTargets("NORTHMAN", shardCount), [shardCount]);
   const bracketTargets = useMemo(() => buildBracketTargets(shardCount), [shardCount]);
@@ -451,16 +512,16 @@ function DeconstructingObject() {
     transitionPulseRef.current = THREE.MathUtils.damp(transitionPulseRef.current, formationPulse, 2.1, delta);
     pulseRef.current = THREE.MathUtils.damp(pulseRef.current, easeDecon, 1.1, delta);
 
-    const bracketPull = bracketBlend * 0.45;
+    const bracketPull = bracketBlend * layout.bracketPullScale;
 
     const targetX =
-      THREE.MathUtils.lerp(2.35, 0.0, scroll) -
+      THREE.MathUtils.lerp(layout.groupXStart, 0.0, scroll) -
       bracketPull +
-      Math.sin(scroll * Math.PI * 2.2 + t * 0.08) * (0.14 * intro);
+      Math.sin(scroll * Math.PI * 2.2 + t * 0.08) * (layout.introWobble * intro);
 
-    const targetY = THREE.MathUtils.lerp(0.7, 0.14, scroll);
+    const targetY = THREE.MathUtils.lerp(layout.groupYStart, layout.groupYEnd, scroll);
     const targetZ =
-      THREE.MathUtils.lerp(-0.25, 0.42, scroll) +
+      THREE.MathUtils.lerp(layout.groupZStart, layout.groupZEnd, scroll) +
       transitionPulseRef.current * 0.2 +
       Math.sin(t * 0.12 + sway * Math.PI * 2) * (0.04 * intro);
 
@@ -476,15 +537,20 @@ function DeconstructingObject() {
     group.rotation.x = THREE.MathUtils.damp(group.rotation.x, targetRotX, 1.9, delta);
     group.rotation.z = THREE.MathUtils.damp(group.rotation.z, targetRotZ, 1.9, delta);
 
-    const heroScale = 1.06 + Math.pow(scroll, 1.5) * 0.72 + transitionPulseRef.current * 0.04;
+    const heroScale =
+      layout.groupScaleBase +
+      Math.pow(scroll, 1.5) * (layout.groupScalePeak - layout.groupScaleBase) +
+      transitionPulseRef.current * 0.04;
+
     group.scale.setScalar(THREE.MathUtils.damp(group.scale.x, heroScale, 2.0, delta));
 
-    const cameraTargetZ = THREE.MathUtils.lerp(7.2, 4.25, scroll) - transitionPulseRef.current * 0.12;
+    const cameraTargetZ = THREE.MathUtils.lerp(layout.cameraStartZ, layout.cameraEndZ, scroll) - transitionPulseRef.current * 0.12;
     const camera = state.camera as THREE.PerspectiveCamera;
+
     camera.position.z = THREE.MathUtils.damp(camera.position.z, cameraTargetZ, 1.6, delta);
-    camera.position.x = THREE.MathUtils.damp(camera.position.x, Math.sin(scroll * Math.PI) * 0.06, 1.6, delta);
-    camera.position.y = THREE.MathUtils.damp(camera.position.y, 0.02 + (1 - intro) * 0.03, 1.6, delta);
-    camera.fov = THREE.MathUtils.damp(camera.fov, THREE.MathUtils.lerp(48, 40, scroll), 1.8, delta);
+    camera.position.x = THREE.MathUtils.damp(camera.position.x, Math.sin(scroll * Math.PI) * layout.cameraXWobble, 1.6, delta);
+    camera.position.y = THREE.MathUtils.damp(camera.position.y, layout.cameraYBase + (1 - intro) * 0.03, 1.6, delta);
+    camera.fov = THREE.MathUtils.damp(camera.fov, THREE.MathUtils.lerp(layout.fovStart, layout.fovEnd, scroll), 1.8, delta);
     camera.updateProjectionMatrix();
 
     const solid = solidMeshRef.current;
@@ -781,15 +847,35 @@ function DeconstructingObject() {
 }
 
 export default function Scroll3DObject() {
+  const viewport = useViewport();
+  const reducedMotion = useReducedMotion();
+
+  const isMobile = viewport.width < 640;
+
+  const scene = useMemo(
+    () => ({
+      ambient: isMobile ? 0.32 : 0.42,
+      dirMain: isMobile ? 1.55 : 1.9,
+      dirFill: isMobile ? 0.42 : 0.55,
+      pointLeft: isMobile ? 0.62 : 0.8,
+      pointRight: isMobile ? 0.58 : 0.75,
+      pointFront: isMobile ? 0.4 : 0.55,
+      bloom: isMobile ? 0.64 : 0.78,
+      vignette: isMobile ? 0.82 : 0.78,
+      dprMax: isMobile ? 1.15 : 1.5,
+    }),
+    [isMobile]
+  );
+
   return (
-    <div className="fixed inset-0 z-0 pointer-events-none" aria-hidden="true">
+    <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden" aria-hidden="true">
       <Canvas
-        camera={{ position: [0, 0, 7.2], fov: 48 }}
-        dpr={[1, 1.5]}
+        camera={{ position: [0, 0, isMobile ? 8.8 : 7.2], fov: isMobile ? 58 : 48 }}
+        dpr={[1, scene.dprMax]}
         frameloop="always"
         gl={{
           alpha: true,
-          antialias: false,
+          antialias: !isMobile,
           powerPreference: "high-performance",
           stencil: false,
           depth: true,
@@ -802,18 +888,23 @@ export default function Scroll3DObject() {
         }}
       >
         <Suspense fallback={null}>
-          <ambientLight intensity={0.42} />
-          <directionalLight position={[4, 6, 5]} intensity={1.9} color="#ffffff" />
-          <directionalLight position={[-5, -2, 4]} intensity={0.55} color="#dffcff" />
-          <pointLight position={[-4, -2, 3]} intensity={0.8} color="#7efcff" />
-          <pointLight position={[2, 2, 2]} intensity={0.75} color="#ffffff" />
-          <pointLight position={[0, 0, 6]} intensity={0.55} color="#ffffff" />
+          <ambientLight intensity={scene.ambient} />
+          <directionalLight position={[4, 6, 5]} intensity={scene.dirMain} color="#ffffff" />
+          <directionalLight position={[-5, -2, 4]} intensity={scene.dirFill} color="#dffcff" />
+          <pointLight position={[-4, -2, 3]} intensity={scene.pointLeft} color="#7efcff" />
+          <pointLight position={[2, 2, 2]} intensity={scene.pointRight} color="#ffffff" />
+          <pointLight position={[0, 0, 6]} intensity={scene.pointFront} color="#ffffff" />
 
-          <DeconstructingObject />
+          <DeconstructingObject viewport={viewport} reducedMotion={reducedMotion} />
 
           <EffectComposer multisampling={0}>
-            <Bloom intensity={0.78} luminanceThreshold={0.12} luminanceSmoothing={0.9} mipmapBlur />
-            <Vignette eskil={false} offset={0.12} darkness={0.78} />
+            <Bloom
+              intensity={scene.bloom}
+              luminanceThreshold={0.12}
+              luminanceSmoothing={0.9}
+              mipmapBlur
+            />
+            <Vignette eskil={false} offset={0.12} darkness={scene.vignette} />
           </EffectComposer>
         </Suspense>
       </Canvas>
