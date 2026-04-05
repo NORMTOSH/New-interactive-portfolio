@@ -69,7 +69,7 @@ const AboutSection = () => {
     <section
       id="about"
       ref={sectionRef}
-      className="section-padding noise-bg relative overflow-hidden"
+      className="section-padding noise-bg relative overflow-hidden h-screen"
     >
       <div ref={glowARef} className="absolute -top-32 -left-32 w-[400px] h-[400px] rounded-full bg-primary/5 blur-[160px] will-change-transform" />
       <div ref={glowBRef} className="absolute -bottom-32 -right-32 w-[400px] h-[400px] rounded-full bg-secondary/5 blur-[160px] will-change-transform" />

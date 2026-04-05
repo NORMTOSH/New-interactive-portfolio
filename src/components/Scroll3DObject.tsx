@@ -1,12 +1,29 @@
-// src/components/Scroll3DObject.tsx
 import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { EffectComposer, Bloom, Vignette } from "@react-three/postprocessing";
 import * as THREE from "three";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { useTheme } from "./ThemeProvider";
 
 gsap.registerPlugin(ScrollTrigger);
+
+type ThemeMode = "light" | "dark";
+
+type ThemeColors = {
+  solid: string;
+  wire: string;
+  outline: string;
+  emissive: string;
+  core: string;
+  halo: string;
+  ambient: number;
+  dirMain: number;
+  dirFill: number;
+  bloom: number;
+  vignette: number;
+  sceneExposure: number;
+};
 
 type Shard = {
   position: THREE.Vector3;
@@ -33,10 +50,36 @@ type Viewport = {
   height: number;
 };
 
-const SOLID_COLOR = "#f7ffff";
-const WIRE_COLOR = "#ffffff";
-const OUTLINE_COLOR = "#b8ffff";
-const EMISSIVE_COLOR = "#8cf7ff";
+const THEME_COLORS: Record<ThemeMode, ThemeColors> = {
+  light: {
+    solid: "#0d47a1",
+    wire: "#07c8f9",
+    outline: "#07c8f9",
+    emissive: "#07c8f9",
+    core: "#48cae4",
+    halo: "#48cae4",
+    ambient: 0.52,
+    dirMain: 1.8,
+    dirFill: 0.58,
+    bloom: 0.62,
+    vignette: 0.54,
+    sceneExposure: 1.05,
+  },
+  dark: {
+    solid: "#f7ffff",
+    wire: "#ffffff",
+    outline: "#b8ffff",
+    emissive: "#8cf7ff",
+    core: "#efffff",
+    halo: "#7efcff",
+    ambient: 0.32,
+    dirMain: 1.9,
+    dirFill: 0.55,
+    bloom: 0.78,
+    vignette: 0.78,
+    sceneExposure: 1.12,
+  },
+};
 
 function seededRandom(seed: number) {
   const x = Math.sin(seed) * 10000;
@@ -218,7 +261,7 @@ function buildBracketTargets(count: number) {
   return shuffleWithSeed(points, 41);
 }
 
-function buildShards(targets: THREE.Vector3[], count: number): Shard[] {
+function buildShards(targets: THREE.Vector3[], count: number, colors: ThemeColors): Shard[] {
   const shards: Shard[] = [];
 
   for (let i = 0; i < count; i += 1) {
@@ -243,7 +286,7 @@ function buildShards(targets: THREE.Vector3[], count: number): Shard[] {
       ),
       scale: 0.2 + seededRandom(i + 40) * 0.74,
       targetScale: 0.06 + seededRandom(i + 50) * 0.15,
-      color: wireframe ? WIRE_COLOR : SOLID_COLOR,
+      color: wireframe ? colors.wire : colors.solid,
       wireframe,
     });
   }
@@ -377,9 +420,10 @@ function useScrollProgress() {
 type DeconstructingObjectProps = {
   viewport: Viewport;
   reducedMotion: boolean;
+  colors: ThemeColors;
 };
 
-function DeconstructingObject({ viewport, reducedMotion }: DeconstructingObjectProps) {
+function DeconstructingObject({ viewport, reducedMotion, colors }: DeconstructingObjectProps) {
   const isMobile = viewport.width < 640;
   const isTablet = viewport.width >= 640 && viewport.width < 1024;
 
@@ -421,7 +465,7 @@ function DeconstructingObject({ viewport, reducedMotion }: DeconstructingObjectP
 
   const textTargets = useMemo(() => buildTextTargets("NORTHMAN", shardCount), [shardCount]);
   const bracketTargets = useMemo(() => buildBracketTargets(shardCount), [shardCount]);
-  const shards = useMemo(() => buildShards(textTargets, shardCount), [textTargets, shardCount]);
+  const shards = useMemo(() => buildShards(textTargets, shardCount, colors), [textTargets, shardCount, colors]);
 
   const solidIndices = useMemo(
     () => shards.map((s, i) => (!s.wireframe ? i : -1)).filter((i) => i >= 0),
@@ -483,11 +527,11 @@ function DeconstructingObject({ viewport, reducedMotion }: DeconstructingObjectP
 
     if (outline) {
       solidIndices.forEach((sourceIndex, instanceIndex) => {
-        outline.setColorAt(instanceIndex, new THREE.Color(OUTLINE_COLOR));
+        outline.setColorAt(instanceIndex, new THREE.Color(colors.outline));
       });
       if (outline.instanceColor) outline.instanceColor.needsUpdate = true;
     }
-  }, [shards, solidIndices, wireIndices]);
+  }, [shards, solidIndices, wireIndices, colors]);
 
   useFrame((state, delta) => {
     const group = groupRef.current;
@@ -562,8 +606,8 @@ function DeconstructingObject({ viewport, reducedMotion }: DeconstructingObjectP
     const wireMaterial = wire?.material as THREE.MeshBasicMaterial | undefined;
 
     if (solidMaterial) {
-      solidMaterial.color = new THREE.Color(SOLID_COLOR);
-      solidMaterial.emissive = new THREE.Color(EMISSIVE_COLOR);
+      solidMaterial.color = new THREE.Color(colors.solid);
+      solidMaterial.emissive = new THREE.Color(colors.emissive);
       solidMaterial.emissiveIntensity = 0.55 + bracketBlend * 0.25 + transitionPulseRef.current * 0.12;
       solidMaterial.opacity = 0.94;
       solidMaterial.roughness = 0.03;
@@ -573,7 +617,7 @@ function DeconstructingObject({ viewport, reducedMotion }: DeconstructingObjectP
       solidMaterial.ior = 1.45;
       solidMaterial.clearcoat = 1;
       solidMaterial.clearcoatRoughness = 0.03;
-      solidMaterial.attenuationColor = new THREE.Color("#9aefff");
+      solidMaterial.attenuationColor = new THREE.Color(colors.emissive);
       solidMaterial.attenuationDistance = 2.8;
       solidMaterial.envMapIntensity = 1.15;
       solidMaterial.flatShading = true;
@@ -587,7 +631,7 @@ function DeconstructingObject({ viewport, reducedMotion }: DeconstructingObjectP
     }
 
     if (outlineMaterial) {
-      outlineMaterial.color = new THREE.Color(OUTLINE_COLOR);
+      outlineMaterial.color = new THREE.Color(colors.outline);
       outlineMaterial.transparent = true;
       outlineMaterial.opacity = 0.38 + bracketBlend * 0.08;
       outlineMaterial.toneMapped = false;
@@ -596,7 +640,7 @@ function DeconstructingObject({ viewport, reducedMotion }: DeconstructingObjectP
     }
 
     if (wireMaterial) {
-      wireMaterial.color = new THREE.Color(WIRE_COLOR);
+      wireMaterial.color = new THREE.Color(colors.wire);
       wireMaterial.transparent = true;
       wireMaterial.opacity = 1;
       wireMaterial.toneMapped = false;
@@ -682,17 +726,17 @@ function DeconstructingObject({ viewport, reducedMotion }: DeconstructingObjectP
       const glassShade = 0.34 + centerLight * 0.58 + bracketBlend * 0.08;
 
       if (mesh === solid) {
-        tmp.color.set(SOLID_COLOR);
-        tmp.color.lerp(new THREE.Color("#89f7ff"), centerLight * 0.28);
+        tmp.color.set(colors.solid);
+        tmp.color.lerp(new THREE.Color(colors.emissive), centerLight * 0.28);
         tmp.color.multiplyScalar(glassShade);
         mesh.setColorAt(instanceIndex, tmp.color);
       } else if (mesh === wire) {
-        tmp.color.set(WIRE_COLOR);
+        tmp.color.set(colors.wire);
         tmp.color.lerp(new THREE.Color("#dffcff"), 0.35 + centerLight * 0.2);
         tmp.color.multiplyScalar(0.92 + centerLight * 0.18);
         mesh.setColorAt(instanceIndex, tmp.color);
       } else {
-        tmp.color.set(OUTLINE_COLOR);
+        tmp.color.set(colors.outline);
         tmp.color.multiplyScalar(0.82 + centerLight * 0.12);
         mesh.setColorAt(instanceIndex, tmp.color);
       }
@@ -734,7 +778,7 @@ function DeconstructingObject({ viewport, reducedMotion }: DeconstructingObjectP
 
       const coreMaterial = coreRef.current.material as THREE.MeshPhysicalMaterial | undefined;
       if (coreMaterial) {
-        coreMaterial.emissive = new THREE.Color("#9fffff");
+        coreMaterial.emissive = new THREE.Color(colors.emissive);
         coreMaterial.emissiveIntensity = 3.6 + transitionPulseRef.current * 1.5;
         coreMaterial.opacity = THREE.MathUtils.lerp(0.32, 0.55, transitionPulseRef.current);
         coreMaterial.roughness = 0.05;
@@ -767,8 +811,8 @@ function DeconstructingObject({ viewport, reducedMotion }: DeconstructingObjectP
       <instancedMesh ref={solidMeshRef} args={[undefined as never, undefined as never, solidIndices.length]}>
         <octahedronGeometry args={[0.22, 0]} />
         <meshPhysicalMaterial
-          color={SOLID_COLOR}
-          emissive={EMISSIVE_COLOR}
+          color={colors.solid}
+          emissive={colors.emissive}
           emissiveIntensity={0.55}
           metalness={0.02}
           roughness={0.03}
@@ -777,7 +821,7 @@ function DeconstructingObject({ viewport, reducedMotion }: DeconstructingObjectP
           ior={1.45}
           clearcoat={1}
           clearcoatRoughness={0.03}
-          attenuationColor="#9aefff"
+          attenuationColor={colors.emissive}
           attenuationDistance={2.8}
           transparent
           opacity={0.94}
@@ -794,7 +838,7 @@ function DeconstructingObject({ viewport, reducedMotion }: DeconstructingObjectP
       <instancedMesh ref={solidOutlineMeshRef} args={[undefined as never, undefined as never, solidIndices.length]}>
         <octahedronGeometry args={[0.22, 0]} />
         <meshBasicMaterial
-          color={OUTLINE_COLOR}
+          color={colors.outline}
           wireframe
           transparent
           opacity={0.38}
@@ -806,7 +850,7 @@ function DeconstructingObject({ viewport, reducedMotion }: DeconstructingObjectP
       <instancedMesh ref={wireMeshRef} args={[undefined as never, undefined as never, wireIndices.length]}>
         <octahedronGeometry args={[0.22, 0]} />
         <meshBasicMaterial
-          color={WIRE_COLOR}
+          color={colors.wire}
           wireframe
           transparent
           opacity={1}
@@ -818,8 +862,8 @@ function DeconstructingObject({ viewport, reducedMotion }: DeconstructingObjectP
       <mesh ref={coreRef} name="core-glow">
         <sphereGeometry args={[0.52, 24, 24]} />
         <meshPhysicalMaterial
-          color="#efffff"
-          emissive="#9effff"
+          color={colors.core}
+          emissive={colors.emissive}
           emissiveIntensity={3.6}
           transparent
           opacity={0.34}
@@ -830,17 +874,17 @@ function DeconstructingObject({ viewport, reducedMotion }: DeconstructingObjectP
           ior={1.45}
           clearcoat={1}
           clearcoatRoughness={0.04}
-          attenuationColor="#9aefff"
+          attenuationColor={colors.emissive}
           attenuationDistance={2.8}
         />
       </mesh>
 
       <pointLight position={[0, 0, 0]} intensity={1.45} color="#ffffff" distance={6} decay={2} />
-      <pointLight position={[0, 0, 0]} intensity={1.05} color="#8cf7ff" distance={6} decay={2} />
+      <pointLight position={[0, 0, 0]} intensity={1.05} color={colors.emissive} distance={6} decay={2} />
 
       <mesh ref={haloRef} name="halo-glow">
         <sphereGeometry args={[0.95, 18, 18]} />
-        <meshBasicMaterial color="#7efcff" transparent opacity={0.05} wireframe />
+        <meshBasicMaterial color={colors.halo} transparent opacity={0.05} wireframe />
       </mesh>
     </group>
   );
@@ -849,22 +893,27 @@ function DeconstructingObject({ viewport, reducedMotion }: DeconstructingObjectP
 export default function Scroll3DObject() {
   const viewport = useViewport();
   const reducedMotion = useReducedMotion();
+  const { theme } = useTheme();
+
+  const mode: ThemeMode = theme === "dark" ? "dark" : "light";
+  const colors = THEME_COLORS[mode];
 
   const isMobile = viewport.width < 640;
 
   const scene = useMemo(
     () => ({
-      ambient: isMobile ? 0.32 : 0.42,
-      dirMain: isMobile ? 1.55 : 1.9,
-      dirFill: isMobile ? 0.42 : 0.55,
+      ambient: colors.ambient,
+      dirMain: colors.dirMain,
+      dirFill: colors.dirFill,
       pointLeft: isMobile ? 0.62 : 0.8,
       pointRight: isMobile ? 0.58 : 0.75,
       pointFront: isMobile ? 0.4 : 0.55,
-      bloom: isMobile ? 0.64 : 0.78,
-      vignette: isMobile ? 0.82 : 0.78,
+      bloom: colors.bloom,
+      vignette: colors.vignette,
       dprMax: isMobile ? 1.15 : 1.5,
+      exposure: colors.sceneExposure,
     }),
-    [isMobile]
+    [isMobile, colors]
   );
 
   return (
@@ -884,26 +933,21 @@ export default function Scroll3DObject() {
         onCreated={({ gl }) => {
           gl.outputColorSpace = THREE.SRGBColorSpace;
           gl.toneMapping = THREE.ACESFilmicToneMapping;
-          gl.toneMappingExposure = 1.12;
+          gl.toneMappingExposure = scene.exposure;
         }}
       >
         <Suspense fallback={null}>
           <ambientLight intensity={scene.ambient} />
           <directionalLight position={[4, 6, 5]} intensity={scene.dirMain} color="#ffffff" />
           <directionalLight position={[-5, -2, 4]} intensity={scene.dirFill} color="#dffcff" />
-          <pointLight position={[-4, -2, 3]} intensity={scene.pointLeft} color="#7efcff" />
+          <pointLight position={[-4, -2, 3]} intensity={scene.pointLeft} color={colors.emissive} />
           <pointLight position={[2, 2, 2]} intensity={scene.pointRight} color="#ffffff" />
           <pointLight position={[0, 0, 6]} intensity={scene.pointFront} color="#ffffff" />
 
-          <DeconstructingObject viewport={viewport} reducedMotion={reducedMotion} />
+          <DeconstructingObject viewport={viewport} reducedMotion={reducedMotion} colors={colors} />
 
           <EffectComposer multisampling={0}>
-            <Bloom
-              intensity={scene.bloom}
-              luminanceThreshold={0.12}
-              luminanceSmoothing={0.9}
-              mipmapBlur
-            />
+            <Bloom intensity={scene.bloom} luminanceThreshold={0.12} luminanceSmoothing={0.9} mipmapBlur />
             <Vignette eskil={false} offset={0.12} darkness={scene.vignette} />
           </EffectComposer>
         </Suspense>

@@ -119,8 +119,8 @@ const Navbar = () => {
     <nav ref={navRef} className="fixed top-0 left-0 right-0 z-50">
       <div className="mx-auto mt-3 flex max-w-5xl items-center justify-between rounded-2xl border border-border/40 bg-background/60 px-4 py-3 shadow-[0_8px_32px_hsl(var(--primary)/0.08)] backdrop-blur-2xl md:px-6">
         <a href="#" className="shrink-0 text-lg font-bold tracking-tight">
-          <span className="text-gradient-primary">dev</span>
-          <span className="text-foreground">.folio</span>
+          <span className="text-gradient-primary">norm</span>
+          <span className="text-foreground">.era</span>
         </a>
 
         <div className="mx-auto hidden items-center gap-1 md:flex">
@@ -136,8 +136,8 @@ const Navbar = () => {
                   scrollTo(link.href);
                 }}
                 className={`relative rounded-lg px-3 py-1.5 font-mono text-xs uppercase tracking-wider transition-all duration-300 ${active
-                    ? "bg-primary/10 text-primary"
-                    : "text-muted-foreground hover:bg-muted/50 hover:text-primary"
+                  ? "bg-primary/10 text-primary"
+                  : "text-muted-foreground hover:bg-muted/50 hover:text-primary"
                   }`}
               >
                 {link.label}

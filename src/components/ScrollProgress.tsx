@@ -42,7 +42,7 @@ const ScrollProgress = () => {
   const isMobile = useIsMobile();
   const containerRef = useRef<HTMLDivElement>(null);
   const progressRef = useRef<HTMLDivElement>(null);
-  const dotsRef = useRef<(HTMLDivElement | null)[]>([]);
+  const dotsRef = useRef<(HTMLButtonElement | null)[]>([]);
 
   const activateDot = useCallback((i: number) => {
     const dot = dotsRef.current[i];

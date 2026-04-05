@@ -1,205 +1,169 @@
-import { useEffect, useRef } from "react";
+// src/components/HeroSection.tsx
+import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
 
-gsap.registerPlugin(ScrollTrigger);
+const PHRASES = ["Digital", "Immersive", "Refined", "Premium"];
 
-const PARTICLE_COUNT = 40;
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const HeroSection = () => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const titleRef = useRef<HTMLHeadingElement>(null);
   const subtitleRef = useRef<HTMLParagraphElement>(null);
-  const tagsRef = useRef<HTMLDivElement>(null);
+  const titleRef = useRef<HTMLHeadingElement>(null);
+  const descriptionRef = useRef<HTMLParagraphElement>(null);
   const ctaRef = useRef<HTMLDivElement>(null);
-  const gridRef = useRef<HTMLDivElement>(null);
-  const particlesRef = useRef<HTMLDivElement>(null);
-  const glowARef = useRef<HTMLDivElement>(null);
-  const glowBRef = useRef<HTMLDivElement>(null);
+  const chipsRef = useRef<HTMLDivElement>(null);
+  const glowRef = useRef<HTMLDivElement>(null);
+
+  const [typedText, setTypedText] = useState("");
+  const [phraseIndex, setPhraseIndex] = useState(0);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const runTyping = async () => {
+      while (!cancelled) {
+        const phrase = PHRASES[phraseIndex];
+
+        for (let i = 1; i <= phrase.length; i += 1) {
+          if (cancelled) return;
+          setTypedText(phrase.slice(0, i));
+          await sleep(85);
+        }
+
+        await sleep(1100);
+
+        for (let i = phrase.length - 1; i >= 0; i -= 1) {
+          if (cancelled) return;
+          setTypedText(phrase.slice(0, i));
+          await sleep(45);
+        }
+
+        await sleep(180);
+        setPhraseIndex((prev) => (prev + 1) % PHRASES.length);
+      }
+    };
+
+    runTyping();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [phraseIndex]);
 
   useEffect(() => {
     const ctx = gsap.context(() => {
       const tl = gsap.timeline({ defaults: { ease: "power4.out" } });
 
-      tl.from(titleRef.current, { y: 120, opacity: 0, duration: 1.2, skewY: 5 })
-        .from(subtitleRef.current, { y: 40, opacity: 0, duration: 0.8 }, "-=0.6")
+      tl.from(subtitleRef.current, { y: 18, opacity: 0, duration: 0.7 })
         .from(
-          tagsRef.current?.children ? Array.from(tagsRef.current.children) : [],
-          { y: 30, opacity: 0, duration: 0.5, stagger: 0.1 },
-          "-=0.4"
+          titleRef.current?.children ? Array.from(titleRef.current.children) : [],
+          { y: 60, opacity: 0, duration: 0.9, stagger: 0.12 },
+          "-=0.35"
         )
-        .from(ctaRef.current, { y: 20, opacity: 0, duration: 0.6 }, "-=0.2")
-        .from(gridRef.current, { opacity: 0, scale: 0.95, duration: 1 }, "-=0.8");
+        .from(descriptionRef.current, { y: 18, opacity: 0, duration: 0.7 }, "-=0.45")
+        .from(
+          chipsRef.current?.children ? Array.from(chipsRef.current.children) : [],
+          { y: 16, opacity: 0, duration: 0.55, stagger: 0.08 },
+          "-=0.35"
+        )
+        .from(ctaRef.current, { y: 16, opacity: 0, duration: 0.7 }, "-=0.35");
 
-      // Parallax on scroll
-      const parallaxItems = [
-        { el: titleRef.current, yPercent: -30 },
-        { el: subtitleRef.current, yPercent: -50 },
-        { el: glowARef.current, yPercent: 40, xPercent: 20 },
-        { el: glowBRef.current, yPercent: -30, xPercent: -15 },
-        { el: gridRef.current, yPercent: 20 },
-      ];
-
-      parallaxItems.forEach(({ el, yPercent, xPercent }) => {
-        gsap.to(el, {
-          yPercent,
-          ...(xPercent !== undefined && { xPercent }),
-          ease: "none",
-          scrollTrigger: {
-            trigger: containerRef.current,
-            start: "top top",
-            end: "bottom top",
-            scrub: true,
-          },
-        });
+      gsap.to(glowRef.current, {
+        x: 24,
+        y: -18,
+        duration: 7,
+        repeat: -1,
+        yoyo: true,
+        ease: "sine.inOut",
       });
-
-      // Floating particles
-      if (particlesRef.current) {
-        Array.from(particlesRef.current.children).forEach((p) => {
-          const el = p as HTMLElement;
-          const speed = 20 + Math.random() * 40;
-          const xRange = 30 + Math.random() * 60;
-
-          gsap.to(el, {
-            y: `-=${speed + 40}`,
-            x: `+=${(Math.random() - 0.5) * xRange}`,
-            opacity: 0,
-            duration: speed / 6,
-            repeat: -1,
-            delay: Math.random() * 8,
-            ease: "none",
-            onRepeat() {
-              gsap.set(el, {
-                y: 0,
-                x: 0,
-                opacity: parseFloat(el.dataset.opacity || "0.3"),
-              });
-            },
-          });
-        });
-      }
-
-      // Ambient glow drift
-      gsap.to(glowARef.current, { x: 30, y: -20, duration: 6, repeat: -1, yoyo: true, ease: "sine.inOut" });
-      gsap.to(glowBRef.current, { x: -25, y: 30, duration: 8, repeat: -1, yoyo: true, ease: "sine.inOut" });
     }, containerRef);
 
     return () => ctx.revert();
   }, []);
 
-  const skills = [
-    { label: "Full Stack Dev", color: "primary" },
-    { label: "Blockchain", color: "secondary" },
-    { label: "Graphic Design", color: "accent" },
-    { label: "Machine Learning", color: "primary" },
-  ];
-
-  const particles = Array.from({ length: PARTICLE_COUNT }).map((_, i) => {
-    const size = 1 + Math.random() * 3;
-    const opacity = 0.15 + Math.random() * 0.4;
-    const left = Math.random() * 100;
-    const top = 20 + Math.random() * 80;
-    const colorVar =
-      i % 3 === 0 ? "hsl(var(--primary))" : i % 3 === 1 ? "hsl(var(--secondary))" : "hsl(var(--accent))";
-    return { size, opacity, left, top, colorVar };
-  });
+  const chips = ["Full Stack Dev", "Blockchain", "Graphic Design", "Machine Learning"];
 
   return (
     <section
       ref={containerRef}
-      className="relative min-h-screen flex items-center section-padding noise-bg overflow-hidden"
+      className="relative min-h-screen flex items-center overflow-hidden section-padding noise-bg isolate"
     >
-      {/* Ambient glow – parallax layers */}
+      {/* Premium ambient glow */}
       <div
-        ref={glowARef}
-        className="absolute top-1/4 -left-32 w-[500px] h-[500px] rounded-full bg-primary/10 blur-[140px] will-change-transform"
+        ref={glowRef}
+        className="absolute left-[-120px] top-1/3 w-[520px] h-[520px] rounded-full bg-primary/12 blur-[140px] pointer-events-none will-change-transform"
+        aria-hidden="true"
       />
       <div
-        ref={glowBRef}
-        className="absolute bottom-1/4 -right-32 w-[500px] h-[500px] rounded-full bg-secondary/10 blur-[140px] will-change-transform"
+        className="absolute inset-x-0 bottom-0 h-40 pointer-events-none"
+        aria-hidden="true"
       />
 
-      {/* Floating particles */}
-      <div ref={particlesRef} className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
-        {particles.map((p, i) => (
-          <div
-            key={i}
-            data-opacity={p.opacity}
-            className="absolute rounded-full will-change-transform"
-            style={{
-              width: p.size,
-              height: p.size,
-              left: `${p.left}%`,
-              top: `${p.top}%`,
-              backgroundColor: p.colorVar,
-              opacity: p.opacity,
-              boxShadow: `0 0 ${p.size * 3}px ${p.colorVar}`,
-            }}
-          />
-        ))}
-      </div>
-
-      <div className="relative z-10 max-w-6xl mx-auto w-full flex flex-col items-center lg:items-start">
-        <div className="max-w-3xl">
-          <p
-            ref={subtitleRef}
-            className="font-mono text-sm tracking-[0.3em] uppercase text-muted-foreground mb-6 will-change-transform"
-          >
-            Creative Technologist & Builder
-          </p>
+      <div className="relative z-10 max-w-6xl mx-auto w-full">
+        <div className="max-w-4xl">
+          <div className="inline-flex items-center gap-3 rounded-full border border-white/10 bg-white/5 px-4 py-2 backdrop-blur-md shadow-[0_0_0_1px_rgba(255,255,255,0.03)] mb-6">
+            <span className="h-2 w-2 rounded-full bg-primary shadow-[0_0_18px_hsl(var(--primary))]" />
+            <p
+              ref={subtitleRef}
+              className="font-mono text-[11px] sm:text-xs tracking-[0.34em] uppercase text-muted-foreground"
+            >
+              Creative Technologist & Builder
+            </p>
+          </div>
 
           <h1
             ref={titleRef}
-            className="text-5xl sm:text-7xl lg:text-8xl xl:text-9xl font-bold leading-[0.9] tracking-tight mb-8 will-change-transform"
+            className="text-4xl sm:text-6xl lg:text-7xl xl:text-8xl font-semibold leading-[0.88] tracking-[-0.05em] mb-8"
+            aria-label={`Crafting ${PHRASES[phraseIndex]} Experiences`}
           >
-            <span className="text-foreground">Crafting</span>
-            <br />
-            <span className="text-gradient-primary">Digital</span>
-            <br />
-            <span className="text-foreground">Experiences</span>
+            <span className="block text-foreground">Crafting</span>
+
+            <span className="block text-gradient-primary">
+              <span>{typedText || "\u00A0"}</span>
+              <span className="inline-block w-[0.08em] h-[0.92em] translate-y-[0.08em] ml-1 bg-current align-middle animate-pulse" />
+            </span>
+
+            <span className="block text-foreground">Experiences</span>
           </h1>
 
-          <div ref={tagsRef} className="flex flex-wrap gap-3 mb-10">
-            {skills.map((skill) => (
+          <p
+            ref={descriptionRef}
+            className="max-w-2xl text-base sm:text-lg text-muted-foreground leading-8 mb-10"
+          >
+            I design and build elegant digital experiences with a sharp eye for detail,
+            motion, and performance.
+          </p>
+
+          <div ref={chipsRef} className="flex flex-wrap gap-3 mb-10">
+            {chips.map((chip) => (
               <span
-                key={skill.label}
-                className={`font-mono text-xs tracking-wider px-4 py-2 rounded-full border border-${skill.color}/20 text-${skill.color} bg-${skill.color}/5`}
+                key={chip}
+                className="inline-flex items-center rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-foreground/80 backdrop-blur-sm"
               >
-                {skill.label}
+                {chip}
               </span>
             ))}
           </div>
 
-          <div ref={ctaRef} className="flex items-center gap-6">
+          <div ref={ctaRef} className="flex flex-wrap items-center gap-5">
             <a
               href="#projects"
-              className="inline-flex items-center gap-2 px-8 py-4 bg-primary text-primary-foreground font-semibold rounded-lg hover:shadow-[var(--glow-primary)] transition-all duration-300"
+              className="inline-flex items-center gap-2 rounded-xl bg-primary px-8 py-4 font-semibold text-primary-foreground shadow-[0_0_40px_hsl(var(--primary)/0.25)] transition-transform duration-300 hover:-translate-y-0.5 hover:shadow-[0_0_55px_hsl(var(--primary)/0.3)]"
             >
               View Projects
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
               </svg>
             </a>
+
             <a
               href="#contact"
-              className="font-mono text-sm text-muted-foreground hover:text-primary transition-colors underline underline-offset-4"
+              className="font-mono text-sm tracking-[0.18em] uppercase text-muted-foreground hover:text-primary transition-colors underline underline-offset-8"
             >
               Get in touch
             </a>
           </div>
-        </div>
-      </div>
-
-      {/* Decorative grid – parallax */}
-      <div
-        ref={gridRef}
-        className="absolute right-0 top-0 w-1/2 h-full opacity-[0.03] pointer-events-none hidden lg:block will-change-transform"
-      >
-        <div className="w-full h-full grid grid-cols-8 grid-rows-8">
-          {Array.from({ length: 64 }).map((_, i) => (
-            <div key={i} className="border border-foreground/30" />
-          ))}
         </div>
       </div>
     </section>
