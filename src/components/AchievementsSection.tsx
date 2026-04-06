@@ -1,3 +1,4 @@
+// src/components/AchievementsSection.tsx
 import { useEffect, useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -6,7 +7,10 @@ import { achievements } from "@/data/Milestones";
 
 gsap.registerPlugin(ScrollTrigger);
 
-const colorMap: Record<string, { border: string; text: string; bg: string; glow: string }> = {
+const colorMap: Record<
+  string,
+  { border: string; text: string; bg: string; glow: string }
+> = {
   primary: {
     border: "border-primary/30",
     text: "text-primary",
@@ -28,136 +32,174 @@ const colorMap: Record<string, { border: string; text: string; bg: string; glow:
 };
 
 const AchievementsSection = () => {
-  const sectionRef = useRef<HTMLDivElement>(null);
+  const sectionRef = useRef<HTMLElement>(null);
   const headingRef = useRef<HTMLDivElement>(null);
-  const scrollRef = useRef<HTMLDivElement>(null);
+  const viewportRef = useRef<HTMLDivElement>(null);
+  const trackRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const ctx = gsap.context(() => {
-      gsap.fromTo(
-        headingRef.current,
-        { y: 60, opacity: 0 },
-        {
-          y: 0,
-          opacity: 1,
-          duration: 0.8,
-          scrollTrigger: { trigger: headingRef.current, start: "top 85%", once: true },
-        }
-      );
-
-      if (scrollRef.current) {
-        const cardElements = Array.from(scrollRef.current.children) as HTMLElement[];
-        const totalWidth = cardElements.reduce((acc, el) => acc + el.offsetWidth + 24, 0);
-        const viewportWidth = window.innerWidth;
-        const scrollDistance = Math.max(0, totalWidth - viewportWidth + 96);
-
-        // Set cards to initial hidden state
-        gsap.set(cardElements, { opacity: 0, y: 60, scale: 0.92, rotateY: 12 });
-
-        // Animate each card in as it enters the viewport during horizontal scroll
-        cardElements.forEach((card, i) => {
-          const cardLeft = card.offsetLeft;
-          // Calculate what scroll progress brings this card into view
-          const enterProgress = Math.max(0, (cardLeft - viewportWidth * 0.7) / scrollDistance);
-
-          ScrollTrigger.create({
-            trigger: sectionRef.current,
-            start: "top top",
-            end: () => `+=${scrollDistance}`,
-            scrub: true,
-            onUpdate: (self) => {
-              const progress = self.progress;
-              // Card should animate in when scroll progress passes its enter point
-              const cardProgress = Math.min(1, Math.max(0, (progress - enterProgress) / 0.12));
-              gsap.to(card, {
-                opacity: cardProgress,
-                y: 60 * (1 - cardProgress),
-                scale: 0.92 + 0.08 * cardProgress,
-                rotateY: 12 * (1 - cardProgress),
-                duration: 0.1,
-                overwrite: "auto",
-              });
+      if (headingRef.current) {
+        gsap.fromTo(
+          headingRef.current,
+          { y: 50, opacity: 0 },
+          {
+            y: 0,
+            opacity: 1,
+            duration: 0.9,
+            ease: "power3.out",
+            scrollTrigger: {
+              trigger: headingRef.current,
+              start: "top 85%",
+              once: true,
             },
-          });
-        });
-
-        // Make first 2 cards visible immediately (already in viewport)
-        gsap.to(cardElements.slice(0, 2), {
-          opacity: 1, y: 0, scale: 1, rotateY: 0,
-          duration: 0.8, stagger: 0.15, ease: "power3.out",
-          scrollTrigger: { trigger: sectionRef.current, start: "top 60%", once: true },
-        });
-
-        gsap.to(scrollRef.current, {
-          x: -scrollDistance,
-          ease: "none",
-          scrollTrigger: {
-            trigger: sectionRef.current,
-            start: "top top",
-            end: () => `+=${scrollDistance}`,
-            pin: true,
-            pinSpacing: true,
-            scrub: 1,
-            anticipatePin: 1,
-            invalidateOnRefresh: true,
-          },
-        });
+          }
+        );
       }
+
+      const viewport = viewportRef.current;
+      const track = trackRef.current;
+      if (!viewport || !track) return;
+
+      const cards = Array.from(track.children) as HTMLElement[];
+      if (!cards.length) return;
+
+      const getScrollDistance = () => {
+        const viewportWidth = viewport.offsetWidth;
+        const totalWidth = track.scrollWidth;
+        return Math.max(0, totalWidth - viewportWidth);
+      };
+
+      gsap.set(cards, {
+        opacity: 0.2,
+        y: 40,
+        scale: 0.94,
+        rotateY: 10,
+        transformOrigin: "center center",
+        willChange: "transform, opacity",
+      });
+
+      const tl = gsap.timeline({
+        scrollTrigger: {
+          trigger: sectionRef.current,
+          start: "top top",
+          end: () => `+=${getScrollDistance() + window.innerHeight * 0.85}`,
+          scrub: 1,
+          pin: true,
+          pinSpacing: true,
+          anticipatePin: 1,
+          invalidateOnRefresh: true,
+        },
+      });
+
+      tl.to(track, {
+        x: () => -getScrollDistance(),
+        ease: "none",
+        duration: 1,
+      });
+
+      cards.forEach((card, i) => {
+        const t = i * 0.14;
+
+        tl.to(
+          card,
+          {
+            opacity: 1,
+            y: 0,
+            scale: 1,
+            rotateY: 0,
+            duration: 0.45,
+            ease: "power2.out",
+          },
+          t
+        );
+
+        tl.to(
+          card,
+          {
+            opacity: i === cards.length - 1 ? 1 : 0.35,
+            scale: 0.97,
+            y: -8,
+            duration: 0.35,
+            ease: "power2.inOut",
+          },
+          t + 0.45
+        );
+      });
+
+      const refresh = setTimeout(() => ScrollTrigger.refresh(), 150);
+      return () => clearTimeout(refresh);
     }, sectionRef);
 
-    // Delay refresh to let other sections mount
-    const timer = setTimeout(() => ScrollTrigger.refresh(), 500);
-    return () => {
-      clearTimeout(timer);
-      ctx.revert();
-    };
+    return () => ctx.revert();
   }, []);
 
   return (
-    <section ref={sectionRef} id="achievements" className="section-padding noise-bg relative overflow-hidden min-h-screen">
-      <div className="max-w-6xl mx-auto relative z-10">
-        <div ref={headingRef} className="mb-12">
-          <p className="font-mono text-sm tracking-[0.3em] uppercase text-secondary mb-3">
+    <section
+      ref={sectionRef}
+      id="achievements"
+      className="relative min-h-screen overflow-hidden backdrop-blur-md section-padding noise-bg"
+    >
+      <div className="relative z-10 mx-auto max-w-7xl">
+        <div ref={headingRef} className="mb-10 md:mb-14">
+          <p className="mb-3 font-mono text-sm uppercase tracking-[0.3em] text-secondary">
             Milestones
           </p>
-          <TextReveal className="text-4xl md:text-6xl font-bold tracking-tight">
-            <TextReveal.Line>Key <span className="text-gradient-warm">Achievements</span></TextReveal.Line>
+          <TextReveal className="text-4xl font-bold tracking-tight md:text-6xl">
+            <TextReveal.Line>
+              Key{" "}
+              <span className="text-gradient-warm">Achievements</span>
+            </TextReveal.Line>
           </TextReveal>
         </div>
       </div>
 
       <div
-        ref={scrollRef}
-        className="flex gap-6 px-6 md:px-12 lg:px-24 pb-4"
-        style={{ scrollBehavior: "auto", perspective: "1000px" }}
+        ref={viewportRef}
+        className="relative mx-auto w-full max-w-none overflow-hidden"
       >
-        {achievements.map((item, i) => {
-          const colors = colorMap[item.color];
-          return (
-            <div
-              key={i}
-              className={`group flex-shrink-0 w-[340px] md:w-[400px] p-8 rounded-2xl bg-card border ${colors.border} card-hover ${colors.glow} transition-shadow duration-500`}
-            >
-              <div className="flex items-center justify-between mb-6">
-                <span className="font-mono text-xs tracking-wider text-muted-foreground">
-                  {item.year}
-                </span>
-                <div className={`px-4 py-2 rounded-lg ${colors.bg}`}>
-                  <span className={`text-2xl font-bold ${colors.text}`}>
-                    {item.metric}
-                  </span>
-                  <span className="block font-mono text-[10px] uppercase tracking-wider text-muted-foreground mt-0.5">
-                    {item.metricLabel}
-                  </span>
+        <div
+          ref={trackRef}
+          className="flex w-max gap-5 px-6 pb-8 md:gap-6 md:px-12 lg:px-24"
+          style={{ perspective: "1200px" }}
+        >
+          {achievements.map((item, i) => {
+            const colors = colorMap[item.color] ?? colorMap.primary;
+
+            return (
+              <article
+                key={`${item.year}-${i}`}
+                className={`group relative flex-shrink-0 w-[clamp(280px,24vw,420px)] rounded-3xl border ${colors.border} bg-card/90 p-7 shadow-[0_24px_80px_rgba(0,0,0,0.18)] backdrop-blur-xl transition-shadow duration-500 ${colors.glow}`}
+              >
+                <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-white/[0.05] via-transparent to-white/[0.03] pointer-events-none" />
+                <div className="relative z-10">
+                  <div className="mb-6 flex items-start justify-between gap-4">
+                    <span className="font-mono text-xs tracking-wider text-muted-foreground">
+                      {item.year}
+                    </span>
+
+                    <div className={`rounded-xl px-4 py-3 ${colors.bg}`}>
+                      <span className={`block text-2xl font-bold ${colors.text}`}>
+                        {item.metric}
+                      </span>
+                      <span className="mt-0.5 block font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+                        {item.metricLabel}
+                      </span>
+                    </div>
+                  </div>
+
+                  <h3 className="mb-3 text-lg font-bold tracking-tight md:text-xl">
+                    {item.title}
+                  </h3>
+
+                  <p className="text-sm leading-relaxed text-muted-foreground md:text-[15px]">
+                    {item.description}
+                  </p>
                 </div>
-              </div>
-              <h3 className="text-lg font-bold mb-2">{item.title}</h3>
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                {item.description}
-              </p>
-            </div>
-          );
-        })}
+              </article>
+            );
+          })}
+        </div>
       </div>
     </section>
   );

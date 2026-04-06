@@ -1,17 +1,86 @@
+// src/components/SkillsSection.tsx
 import { useEffect, useRef } from "react";
 import gsap from "gsap";
-import TechCubes from "./TechCubes";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { Sparkles, Code2, PencilRuler, Rocket, Database, Bot } from "lucide-react";
 import TextReveal from "./TextReveal";
-import { skills } from "@/data/Expertise";
 
 gsap.registerPlugin(ScrollTrigger);
 
+const lanes = [
+  {
+    title: "Frontend",
+    icon: Code2,
+    accent: "from-cyan-400/20 via-cyan-300/10 to-transparent",
+    items: [
+      "React",
+      "TypeScript",
+      "Tailwind CSS",
+      "Next.js",
+      "Framer Motion",
+      "GSAP",
+    ],
+  },
+  {
+    title: "Design",
+    icon: PencilRuler,
+    accent: "from-fuchsia-400/20 via-fuchsia-300/10 to-transparent",
+    items: [
+      "UI Systems",
+      "Responsive Layouts",
+      "Brand Identity",
+      "Visual Hierarchy",
+      "Prototyping",
+      "Accessibility",
+    ],
+  },
+  {
+    title: "Motion",
+    icon: Rocket,
+    accent: "from-amber-400/20 via-amber-300/10 to-transparent",
+    items: [
+      "Scroll-Driven Animations",
+      "Microinteractions",
+      "Narrative Transitions",
+      "3D Motion",
+      "Intro Sequences",
+      "Page Flow",
+    ],
+  },
+  {
+    title: "Backend",
+    icon: Database,
+    accent: "from-emerald-400/20 via-emerald-300/10 to-transparent",
+    items: [
+      "Supabase",
+      "REST APIs",
+      "Auth Flows",
+      "Data Modeling",
+      "Dashboards",
+      "CRUD Systems",
+    ],
+  },
+  {
+    title: "AI",
+    icon: Bot,
+    accent: "from-violet-400/20 via-violet-300/10 to-transparent",
+    items: [
+      "Prompting",
+      "LLM Workflows",
+      "Automation",
+      "Data Insights",
+      "Experimental UI",
+      "AI Product Ideas",
+    ],
+  },
+];
+
 const SkillsSection = () => {
-  const sectionRef = useRef<HTMLDivElement>(null);
+  const sectionRef = useRef<HTMLElement>(null);
   const headingRef = useRef<HTMLDivElement>(null);
-  const cardsRef = useRef<HTMLDivElement>(null);
-  const glowRef = useRef<HTMLDivElement>(null);
+  const lanesRef = useRef<HTMLDivElement>(null);
+  const glowARef = useRef<HTMLDivElement>(null);
+  const glowBRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const ctx = gsap.context(() => {
@@ -21,40 +90,70 @@ const SkillsSection = () => {
         {
           y: 0,
           opacity: 1,
-          duration: 0.8,
-          scrollTrigger: { trigger: headingRef.current, start: "top 85%", once: true },
+          duration: 0.9,
+          ease: "power3.out",
+          scrollTrigger: {
+            trigger: sectionRef.current,
+            start: "top 85%",
+            once: true,
+          },
         }
       );
 
-      if (cardsRef.current) {
+      if (lanesRef.current) {
+        const laneRows = Array.from(lanesRef.current.querySelectorAll(".skill-lane"));
         gsap.fromTo(
-          Array.from(cardsRef.current.children),
-          { y: 100, opacity: 0, scale: 0.9, rotateX: 8 },
+          laneRows,
+          { y: 40, opacity: 0 },
+          {
+            y: 0,
+            opacity: 1,
+            duration: 0.85,
+            stagger: 0.12,
+            ease: "power3.out",
+            scrollTrigger: {
+              trigger: lanesRef.current,
+              start: "top 82%",
+              once: true,
+            },
+          }
+        );
+
+        const laneCards = Array.from(
+          lanesRef.current.querySelectorAll(".skill-pill")
+        );
+        gsap.fromTo(
+          laneCards,
+          { y: 18, opacity: 0, scale: 0.96 },
           {
             y: 0,
             opacity: 1,
             scale: 1,
-            rotateX: 0,
-            duration: 0.9,
-            stagger: 0.18,
-            ease: "power4.out",
-            scrollTrigger: { trigger: cardsRef.current, start: "top 85%", once: true },
+            duration: 0.55,
+            stagger: 0.03,
+            ease: "power2.out",
+            scrollTrigger: {
+              trigger: lanesRef.current,
+              start: "top 80%",
+              once: true,
+            },
           }
         );
       }
 
-      // Parallax on background glow
-      gsap.to(glowRef.current, {
-        yPercent: -40,
-        xPercent: 15,
-        scale: 1.2,
-        ease: "none",
-        scrollTrigger: {
-          trigger: sectionRef.current,
-          start: "top bottom",
-          end: "bottom top",
-          scrub: true,
-        },
+      [glowARef, glowBRef].forEach((ref, i) => {
+        gsap.to(ref.current, {
+          yPercent: i === 0 ? -40 : 35,
+          xPercent: i === 0 ? 18 : -20,
+          scale: 1.15,
+          ease: "none",
+          scrollTrigger: {
+            trigger: sectionRef.current,
+            start: "top bottom",
+            end: "bottom top",
+            scrub: true,
+          },
+        });
       });
     }, sectionRef);
 
@@ -62,58 +161,106 @@ const SkillsSection = () => {
   }, []);
 
   return (
-    <section ref={sectionRef} id="skills" className="section-padding noise-bg relative">
-      <div ref={glowRef} className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-accent/3 rounded-full blur-[200px] will-change-transform" />
+    <section
+      ref={sectionRef}
+      id="skills"
+      className="section-padding noise-bg relative overflow-hidden"
+    >
+      <div
+        ref={glowARef}
+        className="absolute -top-32 left-1/4 h-[500px] w-[500px] rounded-full bg-primary/5 blur-[180px] will-change-transform"
+      />
+      <div
+        ref={glowBRef}
+        className="absolute -bottom-32 right-1/4 h-[500px] w-[500px] rounded-full bg-accent/5 blur-[180px] will-change-transform"
+      />
 
-      <div className="max-w-6xl mx-auto relative z-10">
+      <div className="relative z-10 mx-auto max-w-6xl">
         <div ref={headingRef} className="mb-16">
-          <p className="font-mono text-sm tracking-[0.3em] uppercase text-primary mb-3">
-            Skill stack
-          </p>
-          <TextReveal className="text-4xl md:text-6xl font-bold tracking-tight">
-            <TextReveal.Line>Core <span className="text-gradient-accent">Skills</span></TextReveal.Line>
+          <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 backdrop-blur-md">
+            <Sparkles className="h-4 w-4 text-primary" />
+            <span className="font-mono text-[11px] tracking-[0.28em] uppercase text-white/70">
+              Skill stack
+            </span>
+          </div>
+
+          <TextReveal className="text-4xl font-bold tracking-tight md:text-6xl">
+            <TextReveal.Line>
+              Core <span className="text-gradient-accent">Skills</span>
+            </TextReveal.Line>
           </TextReveal>
-        </div>
 
-        {/* Interactive 3D Tech Cubes */}
-        <div className="w-full h-[400px] md:h-[500px] mb-12 rounded-2xl overflow-hidden border border-border/20 bg-card/10 backdrop-blur-sm">
-          <TechCubes />
-        </div>
-
-        <div ref={headingRef} className="mb-16">
-          <p className="font-mono text-sm tracking-[0.3em] uppercase text-primary mb-3">
-            Expertise
+          <p className="mt-4 max-w-2xl text-sm leading-relaxed text-muted-foreground md:text-base">
+            A structured view of the tools and disciplines I use to build polished, modern digital experiences.
           </p>
-          <TextReveal className="text-4xl md:text-6xl font-bold tracking-tight">
-            <TextReveal.Line>Core <span className="text-gradient-accent">Skills</span></TextReveal.Line>
-          </TextReveal>
         </div>
 
-        <div ref={cardsRef} className="grid md:grid-cols-2 gap-6">
-          {skills.map((skill) => (
-            <div
-              key={skill.title}
-              className={`group p-8 rounded-2xl bg-gradient-to-br ${skill.gradient} border ${skill.borderColor} card-hover cursor-default`}
-            >
-              <div className={`w-14 h-14 rounded-xl ${skill.iconBg} flex items-center justify-center text-2xl mb-6`}>
-                {skill.icon}
+        <div ref={lanesRef} className="space-y-5">
+          {lanes.map((lane, index) => {
+            const Icon = lane.icon;
+
+            return (
+              <div
+                key={lane.title}
+                className="skill-lane group relative rounded-3xl border border-white/10 bg-white/[0.03] p-4 md:p-5 backdrop-blur-md shadow-[0_20px_70px_rgba(0,0,0,0.18)]"
+              >
+                <div className="grid gap-5 md:grid-cols-[200px_1fr] md:items-stretch">
+                  <div className="relative flex items-start gap-4 md:flex-col md:gap-3 md:pt-1">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-black/20 shadow-[0_0_30px_rgba(255,255,255,0.06)]">
+                      <Icon className="h-5 w-5 text-primary" />
+                    </div>
+
+                    <div className="md:pl-1">
+                      <h3 className="text-lg font-semibold text-foreground md:text-xl">
+                        {lane.title}
+                      </h3>
+                      <p className="mt-1 font-mono text-[10px] uppercase tracking-[0.24em] text-white/45">
+                        0{index + 1}
+                      </p>
+                    </div>
+
+                    <div className="hidden md:block absolute left-[23px] top-[56px] bottom-0 w-px bg-gradient-to-b from-primary/40 via-white/10 to-transparent" />
+                  </div>
+
+                  <div className="relative overflow-x-auto pb-2">
+                    <div className="absolute left-0 right-0 top-1/2 hidden h-px -translate-y-1/2 bg-gradient-to-r from-white/10 via-white/15 to-white/10 md:block" />
+                    <div className="flex min-w-max gap-3 md:gap-4">
+                      {lane.items.map((item, itemIndex) => (
+                        <div
+                          key={item}
+                          className={`skill-pill relative min-w-[170px] rounded-2xl border border-white/10 bg-gradient-to-br ${lane.accent} px-4 py-4 shadow-[0_10px_40px_rgba(0,0,0,0.12)] transition-all duration-300 hover:-translate-y-1 hover:border-white/20 hover:bg-white/8`}
+                        >
+                          <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-white/10 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+
+                          <div className="relative">
+                            <div className="mb-3 flex items-center gap-2">
+                              <span className="relative flex h-3.5 w-3.5 items-center justify-center">
+                                <span className="absolute h-3.5 w-3.5 rounded-full border border-primary/60 bg-primary/20" />
+                                <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+                              </span>
+                              <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-white/45">
+                                0{itemIndex + 1}
+                              </span>
+                            </div>
+
+                            <p className="text-sm font-medium text-foreground/90">
+                              {item}
+                            </p>
+
+                            <div className="mt-3 h-px w-full bg-gradient-to-r from-white/15 via-white/5 to-transparent" /> // Visual separator for better readability
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
               </div>
-              <h3 className="text-xl font-bold mb-3">{skill.title}</h3>
-              <p className="text-muted-foreground text-sm leading-relaxed mb-6">
-                {skill.description}
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {skill.tools.map((tool) => (
-                  <span
-                    key={tool}
-                    className="font-mono text-xs px-3 py-1 rounded-md bg-muted text-muted-foreground"
-                  >
-                    {tool}
-                  </span>
-                ))}
-              </div>
-            </div>
-          ))}
+            );
+          })}
+        </div>
+
+        <div className="mt-10 flex justify-center">
+          <div className="h-[2px] w-24 bg-gradient-to-r from-transparent via-primary to-transparent opacity-40" />
         </div>
       </div>
     </section>

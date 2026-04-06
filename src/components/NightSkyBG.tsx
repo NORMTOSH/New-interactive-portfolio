@@ -27,7 +27,7 @@ type ShootingStarState = {
 
 const NightSkyBackground: React.FC<NightSkyBackgroundProps> = ({
     className = '',
-    starCount = 12000,
+    starCount = 9000,
     shootingStarCount = 6,
 }) => {
     const mountRef = useRef<HTMLDivElement | null>(null);

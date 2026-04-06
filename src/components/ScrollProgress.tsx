@@ -8,6 +8,7 @@ gsap.registerPlugin(ScrollTrigger);
 const sections = [
   { id: "hero", label: "Home" },
   { id: "about", label: "About" },
+  { id: "expertise", label: "Expertise" },
   { id: "skills", label: "Skills" },
   { id: "milestones", label: "Milestones" },
   { id: "achievements", label: "Achievements" },
