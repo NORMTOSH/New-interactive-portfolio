@@ -1,4 +1,3 @@
-// src/components/ScrollProgress.tsx
 import { useCallback, useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -10,7 +9,6 @@ const sections = [
   { id: "about", label: "About" },
   { id: "expertise", label: "Expertise" },
   { id: "skills", label: "Skills" },
-  { id: "milestones", label: "Milestones" },
   { id: "achievements", label: "Achievements" },
   { id: "projects", label: "Projects" },
   { id: "contact", label: "Contact" },
@@ -44,41 +42,23 @@ const ScrollProgress = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const progressRef = useRef<HTMLDivElement>(null);
   const dotsRef = useRef<(HTMLButtonElement | null)[]>([]);
+  const [activeIndex, setActiveIndex] = useState(0);
 
-  const activateDot = useCallback((i: number) => {
+  const setDotState = useCallback((i: number, active: boolean) => {
     const dot = dotsRef.current[i];
     if (!dot) return;
 
     gsap.to(dot.querySelector(".dot-inner"), {
-      scale: 1,
-      opacity: 1,
-      duration: 0.28,
+      scale: active ? 1 : 0.55,
+      opacity: active ? 1 : 0.35,
+      duration: 0.25,
       ease: "power2.out",
     });
 
     gsap.to(dot.querySelector(".dot-label"), {
-      opacity: 1,
-      x: 0,
-      duration: 0.28,
-      ease: "power2.out",
-    });
-  }, []);
-
-  const deactivateDot = useCallback((i: number) => {
-    const dot = dotsRef.current[i];
-    if (!dot) return;
-
-    gsap.to(dot.querySelector(".dot-inner"), {
-      scale: 0.55,
-      opacity: 0.35,
-      duration: 0.28,
-      ease: "power2.out",
-    });
-
-    gsap.to(dot.querySelector(".dot-label"), {
-      opacity: 0,
-      x: -8,
-      duration: 0.28,
+      opacity: active ? 1 : 0,
+      x: active ? 0 : -8,
+      duration: 0.25,
       ease: "power2.out",
     });
   }, []);
@@ -98,29 +78,57 @@ const ScrollProgress = () => {
               start: "top top",
               end: "bottom bottom",
               scrub: 0.3,
+              invalidateOnRefresh: true,
             },
           }
         );
       }
 
-      sections.forEach((section, i) => {
-        const el = document.getElementById(section.id);
-        if (!el) return;
+      const updateActiveSection = () => {
+        const probeY = window.innerHeight * 0.45;
+        let current = 0;
 
-        ScrollTrigger.create({
-          trigger: el,
-          start: "top center",
-          end: "bottom center",
-          onEnter: () => activateDot(i),
-          onEnterBack: () => activateDot(i),
-          onLeave: () => deactivateDot(i),
-          onLeaveBack: () => deactivateDot(i),
-        });
-      });
+        for (let i = 0; i < sections.length; i++) {
+          const el = document.getElementById(sections[i].id);
+          if (!el) continue;
+
+          const rect = el.getBoundingClientRect();
+
+          // Section becomes active only after its top crosses the probe line.
+          if (rect.top <= probeY) {
+            current = i;
+          }
+        }
+
+        setActiveIndex(current);
+      };
+
+      updateActiveSection();
+
+      window.addEventListener("scroll", updateActiveSection, { passive: true });
+      window.addEventListener("resize", updateActiveSection);
+
+      ScrollTrigger.addEventListener("refresh", updateActiveSection);
+
+      const refreshId = window.setTimeout(() => {
+        ScrollTrigger.refresh();
+        updateActiveSection();
+      }, 100);
+
+      return () => {
+        window.clearTimeout(refreshId);
+        window.removeEventListener("scroll", updateActiveSection);
+        window.removeEventListener("resize", updateActiveSection);
+        ScrollTrigger.removeEventListener("refresh", updateActiveSection);
+      };
     }, containerRef);
 
     return () => ctx.revert();
-  }, [activateDot, deactivateDot, isMobile]);
+  }, [isMobile]);
+
+  useEffect(() => {
+    sections.forEach((_, i) => setDotState(i, i === activeIndex));
+  }, [activeIndex, setDotState]);
 
   const scrollTo = (id: string) => {
     const el = document.getElementById(id);
@@ -158,7 +166,7 @@ const ScrollProgress = () => {
                 aria-label={`Scroll to ${section.label}`}
               >
                 <div className="dot-inner h-2.5 w-2.5 rounded-full border-2 border-background bg-primary opacity-35 scale-50 shadow-sm" />
-                <span className="max-w-full truncate text-[9px] font-mono uppercase tracking-[0.16em] text-primary/80">
+                <span className="dot-label max-w-full truncate text-[9px] font-mono uppercase tracking-[0.16em] text-primary/80 opacity-0 -translate-x-2">
                   {section.label}
                 </span>
               </button>
