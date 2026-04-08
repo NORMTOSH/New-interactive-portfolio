@@ -1,13 +1,24 @@
-// src/components/AboutSection.tsx
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { User, Code, Palette, Brain, Link, Sparkles } from "lucide-react";
+import {
+  User,
+  Code,
+  Palette,
+  Brain,
+  Link,
+  Sparkles,
+  Briefcase,
+} from "lucide-react";
 import TextReveal from "./TextReveal";
+import ExperienceModal from "./ExperienceModal";
+import { Button } from "@/components/ui/button";
 
 gsap.registerPlugin(ScrollTrigger);
 
 const AboutSection = () => {
+  const [isResumeOpen, setIsResumeOpen] = useState(false);
+
   const sectionRef = useRef<HTMLElement>(null);
   const photoRef = useRef<HTMLDivElement>(null);
   const bioRef = useRef<HTMLDivElement>(null);
@@ -132,6 +143,11 @@ const AboutSection = () => {
       ref={sectionRef}
       className="section-padding noise-bg relative overflow-hidden min-h-screen"
     >
+      <ExperienceModal
+        open={isResumeOpen}
+        onOpenChange={setIsResumeOpen}
+      />
+
       <div
         ref={glowARef}
         className="absolute -top-32 -left-32 w-[420px] h-[420px] rounded-full bg-primary/5 blur-[170px] will-change-transform"
@@ -142,7 +158,10 @@ const AboutSection = () => {
       />
 
       <div className="max-w-6xl mx-auto relative z-10">
-        <div ref={badgeRef} className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 backdrop-blur-md">
+        <div
+          ref={badgeRef}
+          className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 backdrop-blur-md"
+        >
           <Sparkles className="h-4 w-4 text-primary" />
           <span className="font-mono text-[11px] tracking-[0.28em] uppercase text-white/70">
             About
@@ -225,6 +244,16 @@ const AboutSection = () => {
               <div className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs font-mono tracking-wide text-white/65 backdrop-blur-md">
                 Available for freelance
               </div>
+            </div>
+
+            <div className="about-highlight pt-2">
+              <Button
+                onClick={() => setIsResumeOpen(true)}
+                className="rounded-full px-5"
+              >
+                <Briefcase className="mr-2 h-4 w-4" />
+                Resume
+              </Button>
             </div>
           </div>
         </div>

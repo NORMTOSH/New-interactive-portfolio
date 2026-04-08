@@ -12,6 +12,7 @@ const sections = [
   { id: "achievements", label: "Achievements" },
   { id: "projects", label: "Projects" },
   { id: "contact", label: "Contact" },
+  { id: "footer", label: "Outro" },
 ];
 
 function useIsMobile(breakpoint = 768) {

@@ -1,10 +1,18 @@
-// src/components/ExpertiseSection.tsx
-import { useEffect, useRef, useState, type CSSProperties, type MouseEvent, type ReactNode } from "react";
+import {
+    useEffect,
+    useRef,
+    useState,
+    type CSSProperties,
+    type MouseEvent,
+    type ReactNode,
+} from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { Sparkles } from "lucide-react";
+import { Sparkles, Layers3 } from "lucide-react";
 import TextReveal from "./TextReveal";
 import { skills } from "@/data/Expertise";
+import ExpertiseModal from "./ExpertiseModal";
+import { Button } from "@/components/ui/button";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -58,6 +66,7 @@ const ExpertiseSection = () => {
     const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
     const orbRefs = useRef<(HTMLDivElement | null)[]>([]);
     const [activeIndex, setActiveIndex] = useState(0);
+    const [isExpertiseOpen, setIsExpertiseOpen] = useState(false);
 
     const typedSkills = skills as Skill[];
 
@@ -218,6 +227,11 @@ const ExpertiseSection = () => {
             id="expertise"
             className="relative min-h-screen overflow-hidden bg-background"
         >
+            <ExpertiseModal
+                open={isExpertiseOpen}
+                onOpenChange={setIsExpertiseOpen}
+            />
+
             <div
                 ref={glowARef}
                 className="pointer-events-none absolute -left-40 top-10 h-[520px] w-[520px] rounded-full bg-cyan-500/10 blur-[180px]"
@@ -260,6 +274,16 @@ const ExpertiseSection = () => {
                                 )
                             )}
                         </div>
+
+                        <div className="mt-6">
+                            <Button
+                                onClick={() => setIsExpertiseOpen(true)}
+                                className="rounded-full px-5"
+                            >
+                                <Layers3 className="mr-2 h-4 w-4" />
+                                More
+                            </Button>
+                        </div>
                     </div>
 
                     <div className="relative flex items-center justify-center">
@@ -297,10 +321,10 @@ const ExpertiseSection = () => {
                                             className="absolute inset-0 opacity-85"
                                             style={{
                                                 backgroundImage: `
-                                                    radial-gradient(circle at 20% 15%, ${theme.auraA}, transparent 38%),
-                                                    radial-gradient(circle at 82% 24%, ${theme.auraB}, transparent 34%),
-                                                    radial-gradient(circle at 50% 85%, rgba(255,255,255,0.08), transparent 42%)
-                                                `,
+                          radial-gradient(circle at 20% 15%, ${theme.auraA}, transparent 38%),
+                          radial-gradient(circle at 82% 24%, ${theme.auraB}, transparent 34%),
+                          radial-gradient(circle at 50% 85%, rgba(255,255,255,0.08), transparent 42%)
+                        `,
                                             }}
                                         />
 
