@@ -21,164 +21,21 @@ import {
     Award,
 } from "lucide-react";
 
-type Experience = {
-    role: string;
-    company: string;
-    location: string;
-    period: string;
-    type: "Current" | "Previous" | "Earlier";
-    description: string;
-    achievements: string[];
-    skills: string[];
-};
-
-type Academic = {
-    program: string;
-    institution: string;
-    location: string;
-    period: string;
-    status: "Completed" | "Ongoing";
-    description: string;
-    highlights: string[];
-};
-
-type Certification = {
-    title: string;
-    issuer: string;
-    period: string;
-    category: "Certification" | "Specialization";
-    description: string;
-    skills: string[];
-};
+import {
+    experiences,
+    academics,
+    certifications,
+    typeStyles,
+    statusStyles,
+    categoryStyles,
+    type Experience,
+    type Academic,
+    type Certification,
+} from "@/data/Experience";
 
 type ExperienceModalProps = {
     open: boolean;
     onOpenChange: (open: boolean) => void;
-};
-
-const experiences: Experience[] = [
-    {
-        role: "Full-Stack Developer",
-        company: "Current Company / Freelance",
-        location: "Kenya",
-        period: "2024 — Present",
-        type: "Current",
-        description:
-            "Building modern digital products with a focus on performance, design systems, and smooth user experiences.",
-        achievements: [
-            "Developed responsive interfaces and reusable UI systems.",
-            "Integrated APIs, authentication flows, and dashboards.",
-            "Collaborated on product strategy, UI/UX, and deployment workflows.",
-        ],
-        skills: ["React", "TypeScript", "Tailwind CSS", "API Integration", "GSAP"],
-    },
-    {
-        role: "Frontend Developer",
-        company: "Previous Company / Client Work",
-        location: "Remote",
-        period: "2022 — 2024",
-        type: "Previous",
-        description:
-            "Worked on client-facing interfaces, landing pages, and business platforms with emphasis on clarity and speed.",
-        achievements: [
-            "Delivered polished websites and application interfaces.",
-            "Improved usability, accessibility, and mobile responsiveness.",
-            "Supported redesigns and feature enhancements across multiple projects.",
-        ],
-        skills: ["Responsive UI", "UX Polish", "Accessibility", "Animation", "Design Systems"],
-    },
-    {
-        role: "Creative Technologist",
-        company: "Earlier Projects",
-        location: "Kenya",
-        period: "2021 — 2022",
-        type: "Earlier",
-        description:
-            "Explored the intersection of design, motion, and code through early product and portfolio work.",
-        achievements: [
-            "Built experimental visuals and interactive experiences.",
-            "Strengthened skills in motion design and frontend development.",
-            "Created prototypes for concepts and brand presentations.",
-        ],
-        skills: ["Motion Design", "Prototyping", "Brand UI", "Creative Coding", "Concept Work"],
-    },
-];
-
-const academics: Academic[] = [
-    {
-        program: "Diploma / Degree in Software Development",
-        institution: "Your Institution Name",
-        location: "Kenya",
-        period: "2020 — 2023",
-        status: "Completed",
-        description:
-            "Focused on software development fundamentals, programming logic, UI development, databases, and system design.",
-        highlights: [
-            "Built projects using modern frontend and backend technologies.",
-            "Developed strong problem-solving and debugging skills.",
-            "Completed practical assignments and portfolio-based work.",
-        ],
-    },
-    {
-        program: "Self-Taught Learning & Independent Study",
-        institution: "Continuous Learning Path",
-        location: "Online",
-        period: "2021 — Present",
-        status: "Ongoing",
-        description:
-            "Continuously expanding technical knowledge through hands-on practice, documentation, and real-world projects.",
-        highlights: [
-            "Studying advanced frontend patterns and performance optimization.",
-            "Exploring motion design, product thinking, and scalable architecture.",
-            "Learning through building, testing, and iterating on live projects.",
-        ],
-    },
-];
-
-const certifications: Certification[] = [
-    {
-        title: "Frontend Development Specialization",
-        issuer: "Online Learning Platform / Institute",
-        period: "2023",
-        category: "Specialization",
-        description:
-            "Covers modern frontend workflows, responsive design, component architecture, and application delivery.",
-        skills: ["HTML", "CSS", "JavaScript", "React", "Responsive Design"],
-    },
-    {
-        title: "UI/UX Design Specialization",
-        issuer: "Online Learning Platform / Institute",
-        period: "2024",
-        category: "Specialization",
-        description:
-            "Focused on user-centered design, interface systems, layout hierarchy, and usability principles.",
-        skills: ["Wireframing", "Design Systems", "Usability", "Prototyping", "Visual Hierarchy"],
-    },
-    {
-        title: "Professional Certification",
-        issuer: "Certifying Body / Platform",
-        period: "2024",
-        category: "Certification",
-        description:
-            "Validation of practical skills in modern web development and digital product creation.",
-        skills: ["Web Development", "Project Delivery", "Best Practices"],
-    },
-];
-
-const typeStyles: Record<Experience["type"], string> = {
-    Current: "bg-emerald-500/10 text-emerald-300 border-emerald-400/20",
-    Previous: "bg-sky-500/10 text-sky-300 border-sky-400/20",
-    Earlier: "bg-violet-500/10 text-violet-300 border-violet-400/20",
-};
-
-const statusStyles: Record<Academic["status"], string> = {
-    Completed: "bg-emerald-500/10 text-emerald-300 border-emerald-400/20",
-    Ongoing: "bg-amber-500/10 text-amber-300 border-amber-400/20",
-};
-
-const categoryStyles: Record<Certification["category"], string> = {
-    Certification: "bg-sky-500/10 text-sky-300 border-sky-400/20",
-    Specialization: "bg-violet-500/10 text-violet-300 border-violet-400/20",
 };
 
 const ExperienceModal = ({ open, onOpenChange }: ExperienceModalProps) => {
@@ -289,6 +146,17 @@ const ExperienceModal = ({ open, onOpenChange }: ExperienceModalProps) => {
 
                                         <p className="mt-4 max-w-3xl text-sm leading-relaxed text-white/70">{cert.description}</p>
 
+                                        <span>{cert.link && (
+                                            <a
+                                                href={cert.link}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="text-xs font-bold text-blue-400 hover:text-blue-300"
+                                            >
+                                                View Certificate
+                                            </a>
+                                        )}</span>
+
                                         <div className="mt-5 border-t border-white/10 pt-4">
                                             <p className="mb-3 text-[11px] font-mono uppercase tracking-[0.24em] text-white/40">
                                                 Skills / focus areas
@@ -359,6 +227,7 @@ const SectionIntro = ({
     </div>
 );
 
+// Similar structure to TimelineExperienceSection but for work experience entries, using typeStyles for the badge colors
 const TimelineExperienceSection = ({
     experiences,
     typeStyles,
@@ -397,7 +266,7 @@ const TimelineExperienceSection = ({
                             <p className="text-sm text-white/65">{exp.company}</p>
                         </div>
 
-                        <div className="space-y-1 text-sm text-white/55 sm:text-right">
+                        <div className="space-y-1 space-x-4 text-sm text-white/55 sm:text-right">
                             <div className="inline-flex items-center gap-2 sm:justify-end">
                                 <CalendarDays className="h-4 w-4" />
                                 <span>{exp.period}</span>
@@ -441,6 +310,7 @@ const TimelineExperienceSection = ({
     </div>
 );
 
+// Similar structure to TimelineExperienceSection but for academic entries, using statusStyles for the badge colors
 const TimelineAcademicSection = ({
     academics,
     statusStyles,
@@ -479,7 +349,7 @@ const TimelineAcademicSection = ({
                             <p className="text-sm text-white/65">{item.institution}</p>
                         </div>
 
-                        <div className="space-y-1 text-sm text-white/55 sm:text-right">
+                        <div className="space-y-1 space-x-4 text-sm text-white/55 sm:text-right">
                             <div className="inline-flex items-center gap-2 sm:justify-end">
                                 <CalendarDays className="h-4 w-4" />
                                 <span>{item.period}</span>

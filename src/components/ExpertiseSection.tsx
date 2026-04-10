@@ -1,3 +1,4 @@
+// src/components/ExpertiseSection.tsx
 import {
     useEffect,
     useRef,
@@ -10,13 +11,13 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { Sparkles, Layers3 } from "lucide-react";
 import TextReveal from "./TextReveal";
-import { skills } from "@/data/Expertise";
+import { mainskills } from "@/data/Expertise";
 import ExpertiseModal from "./ExpertiseModal";
 import { Button } from "@/components/ui/button";
 
 gsap.registerPlugin(ScrollTrigger);
 
-type Skill = {
+type MainSkill = {
     title: string;
     description: string;
     tools: string[];
@@ -68,7 +69,7 @@ const ExpertiseSection = () => {
     const [activeIndex, setActiveIndex] = useState(0);
     const [isExpertiseOpen, setIsExpertiseOpen] = useState(false);
 
-    const typedSkills = skills as Skill[];
+    const typedMainSkills = mainskills as MainSkill[];
 
     useEffect(() => {
         const ctx = gsap.context(() => {
@@ -205,7 +206,7 @@ const ExpertiseSection = () => {
         }, sectionRef);
 
         return () => ctx.revert();
-    }, [typedSkills.length]);
+    }, [typedMainSkills.length]);
 
     const handleSpotlightMove = (e: MouseEvent<HTMLDivElement>) => {
         const el = e.currentTarget;
@@ -293,13 +294,13 @@ const ExpertiseSection = () => {
                             ref={stackRef}
                             className="relative h-[clamp(26rem,52vw,34rem)] w-full max-w-[38rem] overflow-visible [perspective:1800px]"
                         >
-                            {typedSkills.map((skill, index) => {
+                            {typedMainSkills.map((mainskill, index) => {
                                 const theme = themes[index % themes.length];
                                 const isActive = index === activeIndex;
 
                                 return (
                                     <div
-                                        key={skill.title}
+                                        key={mainskill.title}
                                         ref={(el) => {
                                             cardRefs.current[index] = el;
                                         }}
@@ -311,8 +312,8 @@ const ExpertiseSection = () => {
                                                 "--my": "50%",
                                             } as CSSProperties
                                         }
-                                        className={`group absolute inset-0 overflow-hidden rounded-[32px] border ${skill.borderColor ?? theme.border
-                                            } bg-gradient-to-br ${skill.gradient ?? theme.gradient
+                                        className={`group absolute inset-0 overflow-hidden rounded-[32px] border ${mainskill.borderColor ?? theme.border
+                                            } bg-gradient-to-br ${mainskill.gradient ?? theme.gradient
                                             } shadow-[0_30px_90px_rgba(0,0,0,0.28)] backdrop-blur-2xl [transform-style:preserve-3d] transition-opacity duration-300`}
                                     >
                                         <div className="absolute inset-0 bg-black/18" />
@@ -369,24 +370,24 @@ const ExpertiseSection = () => {
                                                 <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-[10px] font-medium uppercase tracking-[0.25em] text-white/60 backdrop-blur-xl">
                                                     <span className="text-white/80">0{index + 1}</span>
                                                     <span>/</span>
-                                                    <span>{typedSkills.length}</span>
+                                                    <span>{typedMainSkills.length}</span>
                                                 </div>
                                                 <div className="h-px flex-1 bg-gradient-to-r from-white/20 via-white/5 to-transparent" />
                                             </div>
 
                                             <div
-                                                className={`mb-6 flex h-14 w-14 items-center justify-center rounded-2xl ${skill.iconBg ?? theme.iconBg
+                                                className={`mb-6 flex h-14 w-14 items-center justify-center rounded-2xl ${mainskill.iconBg ?? theme.iconBg
                                                     } text-2xl shadow-[0_0_40px_rgba(255,255,255,0.08)] transition-transform duration-500 group-hover:scale-110`}
                                             >
-                                                {skill.icon ?? <Sparkles className="h-6 w-6 text-white/90" />}
+                                                {mainskill.icon ?? <Sparkles className="h-6 w-6 text-white/90" />}
                                             </div>
 
                                             <h3 className="text-2xl font-semibold tracking-tight text-white">
-                                                {skill.title}
+                                                {mainskill.title}
                                             </h3>
 
                                             <p className="mt-3 max-w-xl text-sm leading-relaxed text-white/70 sm:text-[15px]">
-                                                {skill.description}
+                                                {mainskill.description}
                                             </p>
 
                                             <div className="mt-auto pt-8">
@@ -395,7 +396,7 @@ const ExpertiseSection = () => {
                                                 </div>
 
                                                 <div className="flex flex-wrap gap-2">
-                                                    {skill.tools.map((tool) => (
+                                                    {mainskill.tools.map((tool) => (
                                                         <span
                                                             key={tool}
                                                             className="rounded-full border border-white/10 bg-white/[0.05] px-3 py-1.5 font-mono text-[11px] text-white/70 backdrop-blur-xl"

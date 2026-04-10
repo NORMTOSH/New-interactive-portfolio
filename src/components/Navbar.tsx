@@ -1,14 +1,17 @@
 // src/components/Navbar.tsx
 import { useEffect, useRef, useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import gsap from "gsap";
 import { Menu, X, Sun, Moon } from "lucide-react";
 import { useTheme } from "./ThemeProvider";
 
 const links = [
+  { label: "Home", href: "/" },
   { label: "About", href: "#about" },
-  { label: "Skills", href: "#skills" },
-  { label: "Achievements", href: "#achievements" },
+  // { label: "Skills", href: "#skills" },
+  // { label: "Achievements", href: "#achievements" },
   { label: "Projects", href: "#projects" },
+  { label: "Gallery", to: "/gallery" },
   { label: "Contact", href: "#contact" },
 ];
 
@@ -19,6 +22,8 @@ const Navbar = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [activeSection, setActiveSection] = useState("");
   const { theme, toggleTheme } = useTheme();
+  const location = useLocation();
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (!navRef.current) return;
@@ -31,7 +36,10 @@ const Navbar = () => {
   }, []);
 
   useEffect(() => {
-    const sectionIds = links.map((l) => l.href.replace("#", ""));
+    const sectionIds = links
+      .filter((l): l is { label: string; href: string } => "href" in l)
+      .map((l) => l.href.replace("#", ""));
+
     const observers: IntersectionObserver[] = [];
 
     sectionIds.forEach((id) => {
@@ -102,10 +110,34 @@ const Navbar = () => {
     );
   }, [mobileOpen]);
 
-  const scrollTo = (href: string) => {
-    const id = href.replace("#", "");
+  useEffect(() => {
+    if (location.pathname !== "/") return;
+    if (!location.hash) return;
+
+    const id = location.hash.replace("#", "");
     const el = document.getElementById(id);
 
+    if (!el) return;
+
+    const timer = window.setTimeout(() => {
+      el.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 0);
+
+    setMobileOpen(false);
+
+    return () => window.clearTimeout(timer);
+  }, [location.pathname, location.hash]);
+
+  const scrollTo = (href: string) => {
+    const id = href.replace("#", "");
+
+    if (location.pathname !== "/") {
+      navigate(`/#${id}`);
+      setMobileOpen(false);
+      return;
+    }
+
+    const el = document.getElementById(id);
     if (el) {
       el.scrollIntoView({ behavior: "smooth", block: "start" });
     }
@@ -114,20 +146,37 @@ const Navbar = () => {
   };
 
   const isActive = (href: string) => activeSection === href.replace("#", "");
+  const isGalleryActive = location.pathname === "/gallery";
 
   return (
     <nav ref={navRef} className="fixed top-0 left-0 right-0 z-50">
       <div className="mx-auto mt-3 flex max-w-5xl items-center justify-between rounded-2xl border border-border/40 bg-background/60 px-4 py-3 shadow-[0_8px_32px_hsl(var(--primary)/0.08)] backdrop-blur-2xl md:px-6">
-        <a href="#" className="shrink-0 text-lg font-bold tracking-tight">
-          <span className="text-gradient-primary">norm</span>
-          <span className="text-foreground">.era</span>
-        </a>
+        <Link to="/" className="shrink-0 text-lg font-bold tracking-tight">
+          <img src="/logo.png" alt="Logo" className="h-auto w-28" />
+        </Link>
 
         <div className="mx-auto hidden items-center gap-1 md:flex">
           {links.map((link) => {
-            const active = isActive(link.href);
+            const isRouteLink = "to" in link;
+            const active = isRouteLink
+              ? isGalleryActive
+              : isActive(link.href);
 
-            return (
+            return isRouteLink ? (
+              <Link
+                key={link.label}
+                to={link.to}
+                className={`relative rounded-lg px-3 py-1.5 font-mono text-xs uppercase tracking-wider transition-all duration-300 ${active
+                  ? "bg-primary/10 text-primary"
+                  : "text-muted-foreground hover:bg-muted/50 hover:text-primary"
+                  }`}
+              >
+                {link.label}
+                {active && (
+                  <span className="absolute bottom-0 left-1/2 h-0.5 w-4 -translate-x-1/2 rounded-full bg-primary" />
+                )}
+              </Link>
+            ) : (
               <a
                 key={link.label}
                 href={link.href}
@@ -180,9 +229,25 @@ const Navbar = () => {
       >
         <div className="flex h-full flex-col items-center justify-center gap-4 px-6">
           {links.map((link, i) => {
-            const active = isActive(link.href);
+            const isRouteLink = "to" in link;
+            const active = isRouteLink
+              ? isGalleryActive
+              : isActive(link.href);
 
-            return (
+            return isRouteLink ? (
+              <Link
+                key={link.label}
+                ref={(el) => {
+                  linkRefs.current[i] = el as HTMLAnchorElement | null;
+                }}
+                to={link.to}
+                onClick={() => setMobileOpen(false)}
+                className={`font-mono text-sm uppercase tracking-wider transition-colors duration-300 ${active ? "text-primary" : "text-muted-foreground hover:text-primary"
+                  }`}
+              >
+                {link.label}
+              </Link>
+            ) : (
               <a
                 key={link.label}
                 ref={(el) => {

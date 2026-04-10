@@ -69,7 +69,7 @@ const Footer = () => {
               </h2>
               <h2
                 aria-hidden="true"
-                className="pointer-events-none absolute left-0 top-0 text-5xl font-bold tracking-[0.22em] text-primary/40 blur-[1px] sm:text-6xl md:text-7xl lg:text-8xl"
+                className="pointer-events-none absolute left-0 top-0 text-5xl font-bold tracking-[0.22em] text-gray-700/40 blur-[1px] sm:text-6xl md:text-7xl lg:text-8xl"
                 style={{ animation: "glitchShift 0.1s infinite" }}
               >
                 NORMAN
@@ -82,7 +82,7 @@ const Footer = () => {
               </h2>
               <h2
                 aria-hidden="true"
-                className="pointer-events-none absolute left-0 top-0 text-5xl font-bold tracking-[0.22em] text-accent/35 blur-[1px] sm:text-6xl md:text-7xl lg:text-8xl"
+                className="pointer-events-none absolute left-0 top-0 text-5xl font-bold tracking-[0.22em] text-gray-700/40 blur-[1px] sm:text-6xl md:text-7xl lg:text-8xl"
                 style={{ animation: "glitchShift 0.1s infinite reverse" }}
               >
                 GITONGA

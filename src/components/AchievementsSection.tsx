@@ -4,7 +4,7 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { Sparkles, Trophy, TrendingUp, Star } from "lucide-react";
 import TextReveal from "./TextReveal";
-import { achievements } from "@/data/Milestones";
+import { achievements } from "@/data/Achievement";
 
 gsap.registerPlugin(ScrollTrigger);
 

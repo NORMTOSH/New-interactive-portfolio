@@ -1,72 +1,12 @@
+// src/components/SkillsSection.tsx
 import { useEffect, useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import {
-  Sparkles,
-  Code2,
-  PencilRuler,
-  Rocket,
-  Database,
-  Bot,
-  ArrowRight,
-} from "lucide-react";
+import { Sparkles, ArrowRight } from "lucide-react";
 import TextReveal from "./TextReveal";
+import { lanes, skillStats } from "@/data/Skills";
 
 gsap.registerPlugin(ScrollTrigger);
-
-const lanes = [
-  {
-    title: "Frontend",
-    icon: Code2,
-    accent: "from-cyan-400/20 via-cyan-300/10 to-transparent",
-    items: ["React", "TypeScript", "Tailwind CSS", "Next.js", "Framer Motion", "GSAP"],
-  },
-  {
-    title: "Design",
-    icon: PencilRuler,
-    accent: "from-fuchsia-400/20 via-fuchsia-300/10 to-transparent",
-    items: [
-      "UI Systems",
-      "Responsive Layouts",
-      "Brand Identity",
-      "Visual Hierarchy",
-      "Prototyping",
-      "Accessibility",
-    ],
-  },
-  {
-    title: "Motion",
-    icon: Rocket,
-    accent: "from-amber-400/20 via-amber-300/10 to-transparent",
-    items: [
-      "Scroll-Driven Animations",
-      "Microinteractions",
-      "Narrative Transitions",
-      "3D Motion",
-      "Intro Sequences",
-      "Page Flow",
-    ],
-  },
-  {
-    title: "Backend",
-    icon: Database,
-    accent: "from-emerald-400/20 via-emerald-300/10 to-transparent",
-    items: ["Supabase", "REST APIs", "Auth Flows", "Data Modeling", "Dashboards", "CRUD Systems"],
-  },
-  {
-    title: "AI",
-    icon: Bot,
-    accent: "from-violet-400/20 via-violet-300/10 to-transparent",
-    items: [
-      "Prompting",
-      "LLM Workflows",
-      "Automation",
-      "Data Insights",
-      "Experimental UI",
-      "AI Product Ideas",
-    ],
-  },
-];
 
 const SkillsSection = () => {
   const sectionRef = useRef<HTMLElement>(null);
@@ -170,11 +110,11 @@ const SkillsSection = () => {
       <div className="relative z-10 mx-auto max-w-6xl">
         <div
           ref={headingRef}
-          className="mb-14 rounded-[2rem] border border-white/10 bg-white/[0.03] p-6 backdrop-blur-xl shadow-[0_24px_80px_rgba(0,0,0,0.18)] md:p-8"
+          className="mb-14 rounded-[2rem] border border-white/10 bg-white/[0.03] p-6 shadow-[0_24px_80px_rgba(0,0,0,0.18)] backdrop-blur-xl md:p-8"
         >
           <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 backdrop-blur-md">
             <Sparkles className="h-4 w-4 text-primary" />
-            <span className="font-mono text-[11px] tracking-[0.28em] uppercase text-white/70">
+            <span className="font-mono text-[11px] uppercase tracking-[0.28em] text-white/70">
               Skill stack
             </span>
           </div>
@@ -193,11 +133,7 @@ const SkillsSection = () => {
             </div>
 
             <div className="grid grid-cols-3 gap-3">
-              {[
-                { label: "Focus", value: "Frontend" },
-                { label: "Style", value: "Motion UI" },
-                { label: "Stack", value: "Full-Stack" },
-              ].map((item) => (
+              {skillStats.map((item) => (
                 <div
                   key={item.label}
                   className="rounded-2xl border border-white/10 bg-white/[0.04] p-4 text-center backdrop-blur-md"
@@ -238,7 +174,7 @@ const SkillsSection = () => {
                       </p>
                     </div>
 
-                    <div className="hidden md:block absolute left-[23px] top-[56px] bottom-0 w-px bg-gradient-to-b from-primary/40 via-white/10 to-transparent" />
+                    <div className="absolute bottom-0 left-[23px] top-[56px] hidden w-px bg-gradient-to-b from-primary/40 via-white/10 to-transparent md:block" />
                   </div>
 
                   <div className="relative overflow-x-auto pb-2">
