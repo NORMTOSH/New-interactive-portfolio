@@ -208,11 +208,14 @@ const ContactSection = () => {
                 <p className="font-mono text-xs uppercase tracking-[0.25em] text-muted-foreground">
                   Preferred contact
                 </p>
+                <p className="mt-3 inline-flex items-center gap-2 text-lg font-semibold text-foreground transition-colors hover:text-primary">
+                  Call: +254 722 134440
+                </p>
                 <a
-                  href="mailto:hello@example.com"
+                  href="mailto:normangitonga844@gmail.com"
                   className="mt-3 inline-flex items-center gap-2 text-lg font-semibold text-foreground transition-colors hover:text-primary"
                 >
-                  hello@example.com
+                  Mail: normangitonga844@gmail.com
                 </a>
               </div>
             </div>
